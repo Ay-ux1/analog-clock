@@ -1,0 +1,266 @@
+/* ---------- Page-level variables (edit these) ---------- */
+:root {
+  --clock-size: 926px;      /* outer diameter of the clock: resize here */
+  --design-size: 926;       /* Figma outer diameter (do not change)     */
+  --page-margin: 16px;      /* breathing room so it never touches edges */
+ 
+  /* Colors (all taken from Figma) */
+  --c-page:            #9e9e9e;
+  --c-bezel:           #222222;              /* Ellipse 1/2 */
+  --c-bezel-highlight: #3d3d3d;              /* Ellipse 3 (light crescent) */
+  --c-face:            #eaeaea;              /* Inner circle */
+  --c-face-shadow:     rgba(0, 0, 0, 0.25);  /* Inner shadow of face */
+  --c-tick:            #222222;
+  --c-number:          #000000;
+  --c-hand:            #222222;              /* Hour + minute hand */
+  --c-second:          #ba1f1f;              /* Second hand */
+  --c-hand-shadow:     rgba(0, 0, 0, 0.16);
+  --c-hub:             #222222;
+  --c-hub-ring:        rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- Page ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+ 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;          /* clock centered horizontally + vertically */
+  background: var(--c-page);
+}
+
+/* ---------- Clock container + size tokens ---------- */
+.clock {
+  /* Actual size: the chosen size, but never bigger than the screen */
+  --clock-px: min(
+    var(--clock-size),
+    calc(100vw  - 2 * var(--page-margin)),
+    calc(100dvh - 2 * var(--page-margin))
+  );
+  width:  var(--clock-px);
+  height: var(--clock-px);
+  position: relative;
+  container-type: size;         /* lets children use cqw units */
+ 
+  /* One design pixel, measured in the clock's own width */
+  --u: calc(100cqw / var(--design-size));
+  /* Outer circle */
+  --outer-d:        calc(926  * var(--u));
+  --highlight-d:    calc(1308 * var(--u));   /* Ellipse 3 diameter */
+  --highlight-left: calc(-435 * var(--u));   /* offset inside outer circle */
+  --highlight-top:  calc(-452 * var(--u));
+ 
+  /* Inner circle */
+  --inner-d:            calc(822 * var(--u));
+  --face-shadow-blur:   calc(25  * var(--u));
+  --face-shadow-spread: calc(20  * var(--u));
+ 
+  /* Ticks (outer end of every tick sits at radius 387) */
+  --tick-outer-r:  calc(387 * var(--u));
+  --tick-minor-w:  calc(3  * var(--u));
+  --tick-minor-h:  calc(16 * var(--u));
+  --tick-major-w:  calc(10 * var(--u));
+  --tick-major-h:  calc(31 * var(--u));
+ 
+  /* Numbers (Amita Regular) */
+  --num-radius: calc(314 * var(--u));  /* clock center -> center of number box */
+  --num-font:   calc(70  * var(--u));
+  --num-box-h:  calc(136 * var(--u));  /* Figma text box height */
+ 
+  /* Hands: width, length ahead of the pivot ("front"), tail behind it */
+  --hour-w:   calc(14  * var(--u));
+  --hour-front:  calc(235 * var(--u));
+  --hour-tail:   calc(20  * var(--u));
+  --hour-radius: calc(7   * var(--u));
+ 
+  --minute-w:   calc(8   * var(--u));
+  --minute-front: calc(280 * var(--u));
+  --minute-tail:  calc(24  * var(--u));
+  --minute-radius: calc(4  * var(--u));
+ 
+  --second-w:   calc(2   * var(--u));
+  --second-front: calc(344 * var(--u));
+  --second-tail:  calc(65  * var(--u));
+  --second-radius: calc(1  * var(--u));
+ 
+  /* Hand drop shadow: x, y, blur */
+  --shadow-x:    calc(1 * var(--u));
+  --shadow-y:    calc(2 * var(--u));
+  --shadow-blur: calc(3 * var(--u));
+ 
+  /* Center pivot */
+  --hub-d:      calc(20 * var(--u));
+  --hub-ring-w: calc(1  * var(--u));
+}
+
+/* ---------- Layer 1: Outer circle ---------- */
+.outer-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width:  var(--outer-d);
+  height: var(--outer-d);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--c-bezel);
+  overflow: hidden;             
+}
+
+.outer-circle::before {
+  content: "";
+  position: absolute;
+  left: var(--highlight-left);
+  top:  var(--highlight-top);
+  width:  var(--highlight-d);
+  height: var(--highlight-d);
+  border-radius: 50%;
+  background: var(--c-bezel-highlight);
+}
+
+/* ---------- Layer 2: Inner circle ---------- */
+.inner-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width:  var(--inner-d);
+  height: var(--inner-d);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--c-face);
+  box-shadow: inset 0 0 var(--face-shadow-blur) var(--face-shadow-spread) var(--c-face-shadow);
+}
+
+/* ---------- Layer 3: Minute ticks ---------- */
+.ticks,
+.numbers,
+.hand-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+ 
+.tick {
+  --_w: var(--tick-minor-w);
+  --_h: var(--tick-minor-h);
+ 
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width:  var(--_w);
+  height: var(--_h);
+  margin: calc(var(--_h) / -2) 0 0 calc(var(--_w) / -2);   /* center on pivot */
+  background: var(--c-tick);
+ 
+  /* rotate around the clock center, then push out to the tick's mid-radius */
+  transform: rotate(var(--angle)) translateY(calc(-1 * (var(--tick-outer-r) - var(--_h) / 2)));
+}
+
+/* Every 5th tick: longer and thicker */
+.tick--hour {
+  --_w: var(--tick-major-w);
+  --_h: var(--tick-major-h);
+}
+
+/* ---------- Layer 4: Numbers ---------- */
+.number {
+  position: absolute;
+  /* place on a circle: radius * sin / cos of the hour angle */
+  left: calc(50% + var(--num-radius) * sin(var(--angle)));
+  top:  calc(50% - var(--num-radius) * cos(var(--angle)));
+  transform: translate(-50%, -50%);   /* upright, never rotated */
+ 
+  font-family: "Amita", cursive;
+  font-weight: 400;
+  font-size: var(--num-font);
+  line-height: var(--num-box-h);
+  color: var(--c-number);
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+}
+
+/* ---------- Layers 5-7: Hands ---------- */
+ 
+/* The wrapper never rotates, so the shadow always falls the same way
+   (this is how Figma draws it). */
+.hand-wrap {
+  filter: drop-shadow(var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--c-hand-shadow));
+}
+ 
+.hand {
+  --angle: 0deg;
+ 
+  position: absolute;
+  left: 50%;
+  top: calc(50% - var(--_front));            /* tip sits "front" above center */
+  width: var(--_w);
+  height: calc(var(--_front) + var(--_tail)); /* tail extends past the pivot   */
+  margin-left: calc(var(--_w) / -2);
+  background: var(--_color);
+  border-radius: var(--_radius);
+ 
+  transform-origin: 50% var(--_front);       /* pivot = exact clock center */
+  transform: rotate(var(--angle));
+  will-change: transform;
+}
+
+/* Layer 5: Hour hand (short, thick, rounded) */
+.hand--hour {
+  --_w: var(--hour-w);
+  --_front: var(--hour-front);
+  --_tail: var(--hour-tail);
+  --_radius: var(--hour-radius);
+  --_color: var(--c-hand);
+}
+
+/* Layer 6: Minute hand (longer, slimmer) */
+.hand--minute {
+  --_w: var(--minute-w);
+  --_front: var(--minute-front);
+  --_tail: var(--minute-tail);
+  --_radius: var(--minute-radius);
+  --_color: var(--c-hand);
+}
+
+/* Layer 7: Second hand (very thin, red, long tail) */
+.hand--second {
+  --_w: var(--second-w);
+  --_front: var(--second-front);
+  --_tail: var(--second-tail);
+  --_radius: var(--second-radius);
+  --_color: var(--c-second);
+}
+
+/* Stepped second hand gets a tiny ease so each tick glides.
+   .is-ready is added after the first paint so the hands don't
+   sweep in from 12 on page load. */
+.clock--stepped.is-ready .hand--second {
+  transition: transform 150ms ease-out;
+}
+ 
+@media (prefers-reduced-motion: reduce) {
+  .clock--stepped.is-ready .hand--second { transition: none; }
+}
+ 
+/* ---------- 9. Layer 8: Center pivot ---------- */
+.hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width:  var(--hub-d);
+  height: var(--hub-d);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--c-hub);
+  border: var(--hub-ring-w) solid var(--c-hub-ring);  /* 1px inside stroke */
+}
+
+/* Nudge the 10 to the right, away from its thick tick */
+.number:nth-child(10) {
+  transform: translate(calc(-50% + 6 * var(--u)), -50%);
+}

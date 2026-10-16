@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analog Clock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amita:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="clock" id="clock" role="img" aria-label="Analog clock">
+        <div class="outer-circle"></div>
+        <div class="inner-circle"></div>
+        <div class="ticks" id="ticks"></div>
+        <div class="numbers" id="numbers"></div>
+        <div class="hand-wrap">
+            <div class="hand hand--hour"   id="hour-hand"></div>
+        </div>
+
+        <div class="hand-wrap">
+            <div class="hand hand--minute" id="minute-hand"></div>
+        </div>
+
+        <div class="hand-wrap">
+            <div class="hand hand--second" id="second-hand"></div>
+        </div>
+        
+        <div class="hub"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
