@@ -1,5 +1,7 @@
 # Analog Clock
 
+**Live demo:** https://ay-ux1.github.io/analog-clock/
+
 ![Figma design of the analog clock](figma-design.png)
 
 A working analog clock built with plain HTML, CSS and vanilla JavaScript. No libraries, no images. It recreates a Figma design and shows the real current time.
